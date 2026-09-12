@@ -79,7 +79,6 @@
                 variant="ghost"
                 theme="gray"
                 size="xs"
-                class="!text-ink-gray-5 hover:!bg-transparent hover:!text-ink-gray-9 active:!bg-transparent"
                 icon="lucide-pencil"
                 label="Edit introduction"
                 @click="openEditBio"
