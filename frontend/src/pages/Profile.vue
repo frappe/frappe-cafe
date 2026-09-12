@@ -310,6 +310,32 @@
         </div>
       </template>
 
+      <Dialog v-model="editHeaderOpen" title="Edit profile" size="md">
+        <template #default>
+          <div class="space-y-4">
+            <FormControl v-model="editHeaderForm.full_name" label="Full name" required />
+            <FormControl v-model="editHeaderForm.headline" label="Bio" type="textarea" />
+            <div class="flex items-end gap-2">
+              <FormControl v-model="editHeaderForm.job_title" label="Job title" class="flex-1" />
+              <span class="pb-1.5 text-ink-gray-5">at</span>
+              <FormControl v-model="editHeaderForm.company" label="Company" class="flex-1" />
+            </div>
+          </div>
+        </template>
+        <template #actions>
+          <div class="flex justify-end gap-2">
+            <Button variant="outline" label="Cancel" @click="editHeaderOpen = false" />
+            <Button
+              variant="solid"
+              theme="gray"
+              label="Save"
+              :loading="updateProfile.loading"
+              @click="saveHeader"
+            />
+          </div>
+        </template>
+      </Dialog>
+
       <Dialog
         v-model="editWorkOpen"
         :title="editWorkForm.name ? 'Edit work experience' : 'Add work experience'"
@@ -612,19 +638,32 @@ const deleteWork = useCall({
   onSuccess: () => profile.reload(),
 })
 
+// dialog.prompt's fields always stack one-per-row with no layout control, so
+// job title/company (wanted side-by-side with "at" between them, like "Job
+// title at Company") needed a hand-built Dialog + FormControl form instead -
+// same pattern as the Work/Education dialogs below.
+const editHeaderOpen = ref(false)
+const editHeaderForm = reactive({
+  full_name: '',
+  headline: '',
+  job_title: '',
+  company: '',
+})
+
 function openEditHeader() {
-  dialog.prompt({
-    title: 'Edit profile',
-    fields: [
-      { name: 'full_name', label: 'Full name', defaultValue: profile.data.full_name, required: true },
-      { name: 'headline', label: 'Bio', defaultValue: profile.data.headline },
-      { name: 'job_title', label: 'Job title', defaultValue: profile.data.job_title },
-      { name: 'company', label: 'Company', defaultValue: profile.data.company },
-    ],
-    onConfirm: ({ values, close }) => {
-      updateProfile.submit(values)
-      close()
-    },
+  Object.assign(editHeaderForm, {
+    full_name: profile.data.full_name || '',
+    headline: profile.data.headline || '',
+    job_title: profile.data.job_title || '',
+    company: profile.data.company || '',
+  })
+  editHeaderOpen.value = true
+}
+
+function saveHeader() {
+  if (!editHeaderForm.full_name) return
+  updateProfile.submit({ ...editHeaderForm }).then(() => {
+    editHeaderOpen.value = false
   })
 }
 
