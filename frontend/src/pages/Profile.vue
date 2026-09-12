@@ -317,8 +317,11 @@
       >
         <template #default>
           <div class="space-y-4">
-            <FormControl v-model="editWorkForm.company" label="Company" required />
-            <FormControl v-model="editWorkForm.title" label="Title" />
+            <div class="flex items-end gap-2">
+              <FormControl v-model="editWorkForm.title" label="Title" class="flex-1" />
+              <span class="pb-1.5 text-ink-gray-5">at</span>
+              <FormControl v-model="editWorkForm.company" label="Company" required class="flex-1" />
+            </div>
             <div class="flex gap-2">
               <FormControl v-model="editWorkForm.start_month" type="select" label="Start month" placeholder="Month" class="flex-1" :options="MONTH_OPTIONS" />
               <FormControl v-model="editWorkForm.start_yr" type="select" label="Start year" placeholder="Year" class="flex-1" :options="YEAR_OPTIONS" />
