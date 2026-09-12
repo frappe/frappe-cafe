@@ -78,7 +78,7 @@
           <span
             v-for="tag in post.data.tags"
             :key="tag"
-            class="rounded bg-surface-gray-2 px-2 py-1.5 text-base text-ink-gray-6"
+            class="rounded-full bg-surface-gray-2 px-2 py-1.5 text-base text-ink-gray-6"
           >
             {{ tag }}
           </span>
