@@ -46,9 +46,13 @@ def after_migrate():
 				},
 				{
 					# Short one-line tagline shown under the name/username row,
-					# distinct from the longer `bio` shown in the Introduction card.
+					# distinct from the longer `bio` shown in the Introduction card -
+					# fieldname stays `headline` (no migration needed), but every
+					# user-facing label/placeholder now reads "Bio" per product
+					# wording, so the two fields read as one concept to users even
+					# though they're stored separately.
 					"fieldname": "headline",
-					"label": "Headline",
+					"label": "Bio",
 					"fieldtype": "Data",
 					"insert_after": "is_private",
 				},

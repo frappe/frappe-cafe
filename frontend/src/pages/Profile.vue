@@ -61,7 +61,7 @@
                 class="text-p-lg"
                 :class="profile.data.headline ? 'text-ink-gray-6' : 'text-ink-gray-4'"
               >
-                {{ profile.data.headline || (isOwnProfile ? 'Add a short headline.' : '') }}
+                {{ profile.data.headline || (isOwnProfile ? 'Add a short bio.' : '') }}
               </p>
             </div>
           </div>
@@ -617,7 +617,7 @@ function openEditHeader() {
     title: 'Edit profile',
     fields: [
       { name: 'full_name', label: 'Full name', defaultValue: profile.data.full_name, required: true },
-      { name: 'headline', label: 'Headline', defaultValue: profile.data.headline },
+      { name: 'headline', label: 'Bio', defaultValue: profile.data.headline },
       { name: 'job_title', label: 'Job title', defaultValue: profile.data.job_title },
       { name: 'company', label: 'Company', defaultValue: profile.data.company },
     ],
