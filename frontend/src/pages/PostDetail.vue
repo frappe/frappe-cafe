@@ -75,13 +75,7 @@
         </Editor>
 
         <div v-if="post.data.tags.length" class="mt-6 flex flex-wrap gap-2">
-          <span
-            v-for="tag in post.data.tags"
-            :key="tag"
-            class="rounded-full bg-surface-gray-2 px-2 py-1.5 text-base text-ink-gray-6"
-          >
-            {{ tag }}
-          </span>
+          <Badge v-for="tag in post.data.tags" :key="tag" size="lg" :label="tag" />
         </div>
 
         <div class="mt-6 flex items-center justify-between border-y border-outline-gray-1 py-3">
@@ -264,6 +258,7 @@ import { computed, nextTick, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   Avatar,
+  Badge,
   Breadcrumbs,
   Button,
   dialog,
