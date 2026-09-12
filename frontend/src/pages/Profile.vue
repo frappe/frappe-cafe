@@ -343,10 +343,19 @@
       >
         <template #default>
           <div class="space-y-4">
-            <FormControl v-model="editWorkForm.company" label="Company" required />
-            <FormControl v-model="editWorkForm.title" label="Title" />
-            <FormControl v-model="editWorkForm.start_date" type="date" label="Start date" />
-            <FormControl v-model="editWorkForm.end_date" type="date" label="End date" />
+            <div class="flex items-end gap-2">
+              <FormControl v-model="editWorkForm.title" label="Title" class="flex-1" />
+              <span class="pb-1.5 text-ink-gray-5">at</span>
+              <FormControl v-model="editWorkForm.company" label="Company" required class="flex-1" />
+            </div>
+            <div class="flex gap-2">
+              <FormControl v-model="editWorkForm.start_month" type="select" label="Start month" placeholder="Month" class="flex-1" :options="MONTH_OPTIONS" />
+              <FormControl v-model="editWorkForm.start_yr" type="select" label="Start year" placeholder="Year" class="flex-1" :options="YEAR_OPTIONS" />
+            </div>
+            <div class="flex gap-2">
+              <FormControl v-model="editWorkForm.end_month" type="select" label="End month" placeholder="Month" class="flex-1" :options="MONTH_OPTIONS" />
+              <FormControl v-model="editWorkForm.end_yr" type="select" label="End year" placeholder="Year" class="flex-1" :options="YEAR_OPTIONS" />
+            </div>
             <FormControl v-model="editWorkForm.description" type="textarea" label="Description" />
           </div>
         </template>
@@ -378,8 +387,14 @@
             <FormControl v-model="editEducationForm.school" label="School" required />
             <FormControl v-model="editEducationForm.degree" label="Degree" />
             <FormControl v-model="editEducationForm.field_of_study" label="Field of study" />
-            <FormControl v-model="editEducationForm.start_year" type="date" label="Start date" />
-            <FormControl v-model="editEducationForm.end_year" type="date" label="End date" />
+            <div class="flex gap-2">
+              <FormControl v-model="editEducationForm.start_month" type="select" label="Start month" placeholder="Month" class="flex-1" :options="MONTH_OPTIONS" />
+              <FormControl v-model="editEducationForm.start_yr" type="select" label="Start year" placeholder="Year" class="flex-1" :options="YEAR_OPTIONS" />
+            </div>
+            <div class="flex gap-2">
+              <FormControl v-model="editEducationForm.end_month" type="select" label="End month" placeholder="Month" class="flex-1" :options="MONTH_OPTIONS" />
+              <FormControl v-model="editEducationForm.end_yr" type="select" label="End year" placeholder="Year" class="flex-1" :options="YEAR_OPTIONS" />
+            </div>
           </div>
         </template>
         <template #actions>
@@ -528,6 +543,40 @@ function formatMonthYear(value) {
   const date = new Date(value)
   if (isNaN(date)) return value
   return date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
+}
+
+// Work/education dates are stored as full Date fields (backend-unchanged),
+// but the picker only ever collects month + year - split/combine to and from
+// that single "YYYY-MM-DD" string at the edges (day is always fixed to 01,
+// since nothing here cares which day of the month it was).
+const MONTH_OPTIONS = [
+  { label: 'January', value: '01' },
+  { label: 'February', value: '02' },
+  { label: 'March', value: '03' },
+  { label: 'April', value: '04' },
+  { label: 'May', value: '05' },
+  { label: 'June', value: '06' },
+  { label: 'July', value: '07' },
+  { label: 'August', value: '08' },
+  { label: 'September', value: '09' },
+  { label: 'October', value: '10' },
+  { label: 'November', value: '11' },
+  { label: 'December', value: '12' },
+]
+const CURRENT_YEAR = new Date().getFullYear()
+const YEAR_OPTIONS = Array.from({ length: 80 }, (_, i) => {
+  const year = String(CURRENT_YEAR - i)
+  return { label: year, value: year }
+})
+
+function splitMonthYear(value) {
+  if (!value) return { month: '', year: '' }
+  const [year, month] = String(value).split('-')
+  return { month: month || '', year: year || '' }
+}
+
+function combineMonthYear(year, month) {
+  return year && month ? `${year}-${month}-01` : ''
 }
 
 const updateProfile = useCall({
@@ -684,8 +733,10 @@ const editEducationForm = reactive({
   school: '',
   degree: '',
   field_of_study: '',
-  start_year: '',
-  end_year: '',
+  start_month: '',
+  start_yr: '',
+  end_month: '',
+  end_yr: '',
 })
 function openAddEducation() {
   Object.assign(editEducationForm, {
@@ -693,32 +744,43 @@ function openAddEducation() {
     school: '',
     degree: '',
     field_of_study: '',
-    start_year: '',
-    end_year: '',
+    start_month: '',
+    start_yr: '',
+    end_month: '',
+    end_yr: '',
   })
   editEducationOpen.value = true
 }
 
 function openEditEducation(edu) {
+  const start = splitMonthYear(edu.start_year)
+  const end = splitMonthYear(edu.end_year)
   Object.assign(editEducationForm, {
     name: edu.name,
     school: edu.school || '',
     degree: edu.degree || '',
     field_of_study: edu.field_of_study || '',
-    start_year: edu.start_year || '',
-    end_year: edu.end_year || '',
+    start_month: start.month,
+    start_yr: start.year,
+    end_month: end.month,
+    end_yr: end.year,
   })
   editEducationOpen.value = true
 }
 
 function saveEducation() {
   if (!editEducationForm.school) return
+  const payload = {
+    ...editEducationForm,
+    start_year: combineMonthYear(editEducationForm.start_yr, editEducationForm.start_month),
+    end_year: combineMonthYear(editEducationForm.end_yr, editEducationForm.end_month),
+  }
   if (editEducationForm.name) {
-    updateEducation.submit({ ...editEducationForm }).then(() => {
+    updateEducation.submit(payload).then(() => {
       editEducationOpen.value = false
     })
   } else {
-    const { name, ...values } = editEducationForm
+    const { name, ...values } = payload
     addEducation.submit(values)
   }
 }
@@ -739,8 +801,10 @@ const editWorkForm = reactive({
   name: '',
   company: '',
   title: '',
-  start_date: '',
-  end_date: '',
+  start_month: '',
+  start_yr: '',
+  end_month: '',
+  end_yr: '',
   description: '',
 })
 function openAddWork() {
@@ -748,20 +812,26 @@ function openAddWork() {
     name: '',
     company: '',
     title: '',
-    start_date: '',
-    end_date: '',
+    start_month: '',
+    start_yr: '',
+    end_month: '',
+    end_yr: '',
     description: '',
   })
   editWorkOpen.value = true
 }
 
 function openEditWork(job) {
+  const start = splitMonthYear(job.start_date)
+  const end = splitMonthYear(job.end_date)
   Object.assign(editWorkForm, {
     name: job.name,
     company: job.company || '',
     title: job.title || '',
-    start_date: job.start_date || '',
-    end_date: job.end_date || '',
+    start_month: start.month,
+    start_yr: start.year,
+    end_month: end.month,
+    end_yr: end.year,
     description: job.description || '',
   })
   editWorkOpen.value = true
@@ -769,12 +839,17 @@ function openEditWork(job) {
 
 function saveWork() {
   if (!editWorkForm.company) return
+  const payload = {
+    ...editWorkForm,
+    start_date: combineMonthYear(editWorkForm.start_yr, editWorkForm.start_month),
+    end_date: combineMonthYear(editWorkForm.end_yr, editWorkForm.end_month),
+  }
   if (editWorkForm.name) {
-    updateWork.submit({ ...editWorkForm }).then(() => {
+    updateWork.submit(payload).then(() => {
       editWorkOpen.value = false
     })
   } else {
-    const { name, ...values } = editWorkForm
+    const { name, ...values } = payload
     addWork.submit(values)
   }
 }
