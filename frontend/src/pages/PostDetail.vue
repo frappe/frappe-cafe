@@ -130,7 +130,7 @@
           />
           <Button
             class="mt-2"
-            variant="solid"
+            variant="subtle"
             theme="gray"
             label="Comment"
             @click="submitComment"
